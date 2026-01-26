@@ -12,6 +12,7 @@ import json
 import time
 import logging
 import requests
+import re
 from typing import Optional, Any
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
@@ -21,6 +22,10 @@ from .config import Config
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 logger = logging.getLogger("AutoTest.APIRunner")
+
+# Pre-compile regex for performance
+RE_SELECT = re.compile(r'SELECT', re.IGNORECASE)
+RE_FROM = re.compile(r'FROM', re.IGNORECASE)
 
 
 class APIRunner:
@@ -194,6 +199,7 @@ class APIRunner:
                     clean_sql = self._extract_sql_from_string(value)
                     if clean_sql:
                         return clean_sql
+                    continue
                 
                 # 递归
                 result = self._find_sql_recursively(value, depth + 1)
@@ -207,6 +213,7 @@ class APIRunner:
                     clean_sql = self._extract_sql_from_string(item)
                     if clean_sql:
                         return clean_sql
+                    continue
                         
                 result = self._find_sql_recursively(item, depth + 1)
                 if result:
@@ -222,15 +229,18 @@ class APIRunner:
         # 模式1: 以 "sql:" 开头
         if "sql:" in text:
             # 提取 sql: 之后的部分
-            parts = text.split("sql:", 1)
-            if len(parts) > 1:
-                potential_sql = parts[1].strip()
-                if "SELECT" in potential_sql.upper():
-                    return potential_sql
+            _, potential_sql = text.split("sql:", 1)
+            if RE_SELECT.search(potential_sql):
+                return potential_sql.strip()
         
         # 模式2: 也就是原本就是纯 SQL (包含 SELECT 和 FROM)
         # 但为了避免误判，稍微严格一点
-        if text.strip().upper().startswith("SELECT") and "FROM" in text.upper():
-            return text.strip()
+        text_stripped = text.strip()
+        if not text_stripped:
+            return None
+
+        if len(text_stripped) >= 6 and text_stripped[:6].upper() == "SELECT":
+            if RE_FROM.search(text):
+                return text_stripped
             
         return None
