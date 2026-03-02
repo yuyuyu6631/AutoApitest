@@ -226,10 +226,11 @@ class APIRunner:
         if not text:
             return None
             
-        # 模式1: 以 "sql:" 开头
-        if "sql:" in text:
+        # 模式1: 以 "sql:"（大小写不敏感）开头或包含
+        sql_marker_match = re.search(r"sql\s*:\s*", text, re.IGNORECASE)
+        if sql_marker_match:
             # 提取 sql: 之后的部分
-            _, potential_sql = text.split("sql:", 1)
+            potential_sql = text[sql_marker_match.end():]
             if RE_SELECT.search(potential_sql):
                 return potential_sql.strip()
         

@@ -25,7 +25,7 @@
 
 ```mermaid
 graph TD
-    A[run_batch_test.py 批量入口] --> B[AuthManager 鉴权 center]
+    A[run_batch_test.py 批量入口] --> B[AuthManager 鉴权中心]
     A --> C[Excel 用例加载]
     A --> D[ThreadPoolExecutor 并发执行]
     D --> E[APIRunner 业务请求]

@@ -181,7 +181,7 @@ class AuthManager:
         data = response.json()
         logger.debug(f"SSO响应数据: {json.dumps(data, ensure_ascii=False)}")
         
-        # SSO 接口的 token 在 data.data.token 路径，且不需要 Bearer 前缀
+        # SSO 接口的 token 在 data.token 路径，且不需要 Bearer 前缀
         token = None
         tenant_id = Config.DEFAULT_TENANT_ID
         
